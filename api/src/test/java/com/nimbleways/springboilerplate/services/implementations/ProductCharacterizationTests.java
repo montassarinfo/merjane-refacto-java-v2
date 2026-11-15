@@ -12,9 +12,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
+import java.time.Clock;
+import java.time.ZoneOffset;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
@@ -27,9 +28,7 @@ class ProductCharacterizationTests {
     @Mock private NotificationService notifications;
 
     private ProductService service() {
-        ProductService service = new ProductService();
-        ReflectionTestUtils.setField(service, "pr", products);
-        ReflectionTestUtils.setField(service, "ns", notifications);
+        ProductService service = new ProductService(products, notifications, Clock.fixed(TODAY.atStartOfDay(ZoneOffset.UTC).toInstant(), ZoneOffset.UTC));
         return service;
     }
 
@@ -52,8 +51,7 @@ class ProductCharacterizationTests {
     })
     void expirableServiceUsesStrictExpiryBoundary(int stock, int expiry, int expected, String notification) {
         Product product = product("EXPIRABLE", stock, 2, -1, 1, expiry);
-        try (MockedStatic<LocalDate> dates = mockStatic(LocalDate.class, CALLS_REAL_METHODS)) {
-            dates.when(LocalDate::now).thenReturn(TODAY);
+        {
             service().handleExpiredProduct(product);
         }
         assertOutcome(product, expected, notification);
@@ -67,8 +65,7 @@ class ProductCharacterizationTests {
     void seasonalServiceCharacterizesDeliveryAndSeasonBoundaries(
             int start, int end, int lead, int expected, String notification) {
         Product product = product("SEASONAL", 3, lead, start, end, 1);
-        try (MockedStatic<LocalDate> dates = mockStatic(LocalDate.class, CALLS_REAL_METHODS)) {
-            dates.when(LocalDate::now).thenReturn(TODAY);
+        {
             service().handleSeasonalProduct(product);
         }
         assertOutcome(product, expected, notification);
@@ -99,12 +96,8 @@ class ProductCharacterizationTests {
         Product product = product(type, stock, lead, start, end, expiry);
         Order order = new Order(7L, Collections.singleton(product));
         when(orders.findById(7L)).thenReturn(Optional.of(order));
-        MyController controller = new MyController();
-        ReflectionTestUtils.setField(controller, "or", orders);
-        ReflectionTestUtils.setField(controller, "pr", products);
-        ReflectionTestUtils.setField(controller, "ps", service());
-        try (MockedStatic<LocalDate> dates = mockStatic(LocalDate.class, CALLS_REAL_METHODS)) {
-            dates.when(LocalDate::now).thenReturn(TODAY);
+        MyController controller = new MyController(new OrderService(orders, service()));
+        {
             assertEquals(7L, controller.processOrder(7L).id());
         }
         assertEquals(lead, product.getLeadTime());

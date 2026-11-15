@@ -21,6 +21,8 @@ public class MyUnitTests {
     private NotificationService notificationService;
     @Mock
     private ProductRepository productRepository;
+    @Mock
+    private java.time.Clock clock;
     @InjectMocks 
     private ProductService productService;
 

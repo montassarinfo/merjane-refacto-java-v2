@@ -2,6 +2,7 @@ package com.nimbleways.springboilerplate.services.implementations;
 
 import com.nimbleways.springboilerplate.entities.Product;
 import com.nimbleways.springboilerplate.repositories.ProductRepository;
+import com.nimbleways.springboilerplate.exceptions.UnknownProductTypeException;
 import java.time.Clock;
 import java.time.LocalDate;
 import org.springframework.stereotype.Service;
@@ -26,11 +27,15 @@ public class ProductService {
     }
 
     /**
-     * Processes one product, retaining the existing no-op for unknown types.
+     * Processes one product, rejecting unsupported or missing types.
+     * @throws UnknownProductTypeException if the type is unsupported or missing
      * @param product product whose stock may be updated
      * @throws NullPointerException if required product data is null
      */
     public void processProduct(Product product) {
+        if (product.getType() == null) {
+            throw new UnknownProductTypeException(null);
+        }
         switch (product.getType()) {
             case "NORMAL":
                 if (product.getAvailable() > 0) {
@@ -52,8 +57,7 @@ public class ProductService {
                 handleExpiredProduct(product);
                 break;
             default:
-                // Characterized legacy behavior; validation is outside this refactoring phase.
-                break;
+                throw new UnknownProductTypeException(product.getType());
         }
     }
 

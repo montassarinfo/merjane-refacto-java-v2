@@ -88,8 +88,8 @@ class ProductCharacterizationTests {
         "EXPIRABLE,3,2,-1,10,1,2,NONE,true",
         "EXPIRABLE,3,2,-1,10,0,0,EXPIRATION,true",
         "EXPIRABLE,3,2,-1,10,-1,0,EXPIRATION,true",
-        "EXPIRABLE,0,2,-1,10,1,0,EXPIRATION,true",
-        "UNKNOWN,3,2,-1,10,1,3,NONE,false"
+        "EXPIRABLE,0,2,-1,10,1,0,EXPIRATION,true"
+
     })
     void orderProcessingPreservesCurrentRules(String type, int stock, int lead, int start,
             int end, int expiry, int expected, String notification, boolean saved) {

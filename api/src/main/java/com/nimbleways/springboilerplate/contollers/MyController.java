@@ -27,7 +27,7 @@ public class MyController {
      * Processes an order and returns its identifier with HTTP 200.
      * @param orderId identifier from the request path
      * @return unchanged response contract containing the order identifier
-     * @throws java.util.NoSuchElementException if the order does not exist
+     * @throws com.nimbleways.springboilerplate.exceptions.OrderNotFoundException if the order does not exist
      */
     @PostMapping("{orderId}/processOrder")
     @ResponseStatus(HttpStatus.OK)
